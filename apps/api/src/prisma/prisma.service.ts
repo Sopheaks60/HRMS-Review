@@ -39,7 +39,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             if (typeof operation !== "function") {
               throw new TypeError("Tenant-scoped Prisma transactions must use the callback form");
             }
-            return target.$transaction(async (tx) => {
+            return target.$transaction(async (tx: Prisma.TransactionClient) => {
               await tx.$executeRaw`SELECT set_config('app.tenant_id', ${scope.tenantId}, true)`;
               return target.tenantScope.run({ ...scope, tx }, () => operation(tx));
             }, { maxWait: 10_000, timeout: 30_000 });
@@ -59,7 +59,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
           get: (modelDelegate, method, delegateReceiver) => {
             const operation = Reflect.get(modelDelegate, method, delegateReceiver);
             if (typeof method !== "string" || typeof operation !== "function") return operation;
-            return (...args: unknown[]) => target.$transaction(async (tx) => {
+            return (...args: unknown[]) => target.$transaction(async (tx: Prisma.TransactionClient) => {
               await tx.$executeRaw`SELECT set_config('app.tenant_id', ${scope.tenantId}, true)`;
               const txDelegate = (tx as unknown as Record<string, Record<string, (...values: unknown[]) => unknown>>)[property];
               const txOperation = txDelegate?.[method];
