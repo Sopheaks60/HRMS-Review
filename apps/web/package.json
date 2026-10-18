@@ -10,6 +10,7 @@
     "lint": "nuxt typecheck"
   },
   "dependencies": {
+    "@krompay/prisma": "workspace:*",
     "@krompay/shared": "workspace:*",
     "@nuxtjs/i18n": "^9.5.3",
     "@nuxtjs/tailwindcss": "^6.13.2",

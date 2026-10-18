@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@krompay/prisma": "workspace:*",
     "@krompay/shared": "workspace:*",
     "@nestjs/bullmq": "^11.0.2",
     "@nestjs/common": "^11.0.12",
