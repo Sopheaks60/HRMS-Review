@@ -5,8 +5,11 @@
   "description": "KromPay — enterprise HRMS and Cambodia payroll SaaS",
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=22.0.0",
+    "node": "22.x",
     "pnpm": ">=9.0.0"
+  },
+  "prisma": {
+    "schema": "packages/prisma/schema.prisma"
   },
   "scripts": {
     "postinstall": "pnpm --filter @krompay/prisma generate",

@@ -1,6 +1,11 @@
 export default defineNuxtConfig({
   compatibilityDate: "2026-01-01",
   ssr: true,
+  postcss: {
+    plugins: {
+      "tailwindcss/nesting": false,
+    },
+  },
   modules: ["@pinia/nuxt", "@nuxtjs/tailwindcss", "@nuxtjs/i18n"],
   runtimeConfig: {
     apiInternalUrl: process.env.API_INTERNAL_URL ?? "/api",

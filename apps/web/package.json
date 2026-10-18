@@ -9,6 +9,9 @@
     "preview": "nuxt preview",
     "lint": "nuxt typecheck"
   },
+  "prisma": {
+    "schema": "../../packages/prisma/schema.prisma"
+  },
   "dependencies": {
     "@krompay/prisma": "workspace:*",
     "@krompay/shared": "workspace:*",

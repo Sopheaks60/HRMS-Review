@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter @krompay/prisma generate && pnpm --filter @krompay/shared build && pnpm --filter @krompay/web build && node scripts/copy-vercel-output.mjs",
   "outputDirectory": "dist"
 }
-
