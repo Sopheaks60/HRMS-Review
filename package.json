@@ -7,9 +7,6 @@
   "engines": {
     "pnpm": ">=9.0.0"
   },
-  "prisma": {
-    "schema": "packages/prisma/schema.prisma"
-  },
   "scripts": {
     "postinstall": "pnpm --filter @krompay/prisma generate",
     "dev": "pnpm -r --parallel dev",
