@@ -46,3 +46,4 @@ if (!syncedStatic) {
 }
 
 console.log("[build-sync] Deployment output synchronization complete.");
+
