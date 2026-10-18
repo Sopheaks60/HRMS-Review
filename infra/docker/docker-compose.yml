@@ -1,0 +1,69 @@
+name: krompay
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: krompay
+      POSTGRES_USER: krompay
+      POSTGRES_PASSWORD: krompay
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U krompay"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  minio:
+    # Local S3-compatible storage. MinIO's community image is no longer anonymously
+    # pullable from Docker Hub or Quay; RustFS exposes the same S3 endpoint here.
+    image: rustfs/rustfs:latest
+    command: ["/data"]
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY:-krompay-local}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY:-krompay-local-secret-change-me}
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_OBS_LOGGER_LEVEL: error
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [minio:/data]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["1025:1025", "8025:8025"]
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.api
+    env_file: ../../.env
+    environment:
+      DATABASE_URL: postgresql://krompay:krompay@postgres:5432/krompay?schema=public
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+      mailpit: { condition: service_started }
+    ports: ["4000:4000"]
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.web
+    environment:
+      API_URL: http://localhost:4000/api/v1
+      API_INTERNAL_URL: http://api:4000/api/v1
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+volumes:
+  pgdata:
+  minio:

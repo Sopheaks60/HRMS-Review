@@ -1,0 +1,3 @@
+ALTER TABLE "FaceSelfie"
+ADD COLUMN "livenessScore" DECIMAL(5,4),
+ADD COLUMN "usedAt" TIMESTAMP(3);

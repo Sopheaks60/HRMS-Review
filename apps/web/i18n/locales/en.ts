@@ -1,0 +1,29 @@
+export default {
+  app: "KromPay",
+  nav: {
+    dashboard: "Dashboard",
+    employees: "Employees",
+    attendance: "Attendance",
+    leave: "Leave",
+    payroll: "Payroll",
+    recruitment: "Recruitment",
+    performance: "Performance",
+    lms: "Learning",
+    expenses: "Expenses",
+    assets: "Assets",
+    billing: "Billing",
+    ess: "My self-service",
+  },
+  auth: {
+    login: "Sign in",
+    tenant: "Company slug",
+    email: "Email",
+    password: "Password",
+  },
+  payroll: {
+    run: "Run payroll",
+    approve: "Approve",
+    tos: "Tax on Salary",
+    nssf: "NSSF",
+  },
+};

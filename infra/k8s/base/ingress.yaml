@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: krompay
+  namespace: krompay
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [app.krompay.app, api.krompay.app]
+      secretName: krompay-tls
+  rules:
+    - host: app.krompay.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: krompay-web, port: { number: 80 } } }
+    - host: api.krompay.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: krompay-api, port: { number: 80 } } }

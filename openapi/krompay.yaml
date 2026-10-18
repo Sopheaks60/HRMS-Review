@@ -1,0 +1,538 @@
+openapi: 3.1.0
+info:
+  title: KromPay API
+  version: 1.0.0
+  description: |
+    Multi-tenant HRMS and Cambodia payroll SaaS.
+    Authentication: Bearer JWT. Tenant is bound in the token (`tid`).
+    Biometric ingest is HMAC-signed and public.
+servers:
+  - url: https://api.krompay.app/api/v1
+  - url: http://localhost:4000/api/v1
+tags:
+  - name: auth
+  - name: tenants
+  - name: employees
+  - name: organization
+  - name: attendance
+  - name: biometric
+  - name: leave
+  - name: overtime
+  - name: payroll
+  - name: recruitment
+  - name: performance
+  - name: lms
+  - name: expenses
+  - name: assets
+  - name: analytics
+  - name: notifications
+  - name: audit
+  - name: billing
+security:
+  - bearerAuth: []
+paths:
+  /health/live:
+    get:
+      tags: [auth]
+      security: []
+      summary: Liveness
+      responses:
+        "200": { description: OK }
+  /auth/login:
+    post:
+      tags: [auth]
+      security: []
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, tenantSlug]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+                tenantSlug: { type: string }
+      responses:
+        "201":
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+                  refreshToken: { type: string }
+  /tenants:
+    post:
+      tags: [tenants]
+      security: []
+      summary: Provision tenant
+      responses:
+        "201": { description: Created }
+  /employees:
+    get:
+      tags: [employees]
+      summary: List employees
+      responses:
+        "200": { description: List }
+    post:
+      tags: [employees]
+      summary: Create employee
+      responses:
+        "201": { description: Created }
+  /employees/me:
+    get:
+      tags: [employees]
+      summary: Employee self-service profile
+      responses:
+        "200": { description: Profile }
+  /employees/me/personal-data:
+    get:
+      tags: [employees]
+      summary: Read the authenticated employee's decrypted personal data
+      responses:
+        "200": { description: Personal-data fields; requires employee.pii.self }
+    patch:
+      tags: [employees]
+      summary: Update the authenticated employee's encrypted personal data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmployeePersonalDataInput' }
+      responses:
+        "200": { description: Updated personal-data fields }
+  /employees/{id}/personal-data:
+    get:
+      tags: [employees]
+      summary: Read employee personal data with employee.pii.read permission
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: Decrypted personal-data fields }
+    patch:
+      tags: [employees]
+      summary: Update employee encrypted personal data with employee.pii.write permission
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmployeePersonalDataInput' }
+      responses:
+        "200": { description: Updated personal-data fields }
+  /organization/tree:
+    get:
+      tags: [organization]
+      summary: Branches, departments, positions
+      responses:
+        "200": { description: Tree }
+  /organization/branches/{id}:
+    put:
+      tags: [organization]
+      summary: Update a tenant branch
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [code, nameEn, nameKm], properties: { code: { type: string }, nameEn: { type: string }, nameKm: { type: string }, address: { type: string, nullable: true }, timezone: { type: string }, isHq: { type: boolean } } }
+      responses:
+        "200": { description: Updated tenant branch }
+  /organization/departments/{id}:
+    put:
+      tags: [organization]
+      summary: Update a tenant department and reporting hierarchy
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [code, nameEn, nameKm], properties: { code: { type: string }, nameEn: { type: string }, nameKm: { type: string }, parentId: { type: string, format: uuid, nullable: true }, managerId: { type: string, format: uuid, nullable: true } } }
+      responses:
+        "200": { description: Updated tenant department }
+  /organization/positions/{id}:
+    put:
+      tags: [organization]
+      summary: Update a tenant position
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [code, titleEn, titleKm], properties: { code: { type: string }, titleEn: { type: string }, titleKm: { type: string }, grade: { type: string, nullable: true } } }
+      responses:
+        "200": { description: Updated tenant position }
+  /organization/cost-centers/{id}:
+    put:
+      tags: [organization]
+      summary: Update a tenant cost center
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [code, name], properties: { code: { type: string }, name: { type: string } } }
+      responses:
+        "200": { description: Updated tenant cost center }
+  /attendance/punch:
+    post:
+      tags: [attendance]
+      summary: Clock in/out (WEB, GPS, FACE)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, source]
+              properties:
+                type: { enum: [CLOCK_IN, CLOCK_OUT] }
+                source: { enum: [WEB, GPS, FACE] }
+                latitude: { type: number }
+                longitude: { type: number }
+                selfieId: { type: string, format: uuid }
+      responses:
+        "201": { description: Punch stored }
+  /attendance/me/next:
+    get:
+      tags: [attendance]
+      summary: Get the authenticated employee's next clock action
+      responses:
+        "200": { description: Next clock type }
+  /attendance/face/verify:
+    post:
+      tags: [attendance]
+      summary: Verify a selfie with the configured server-side face and liveness provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [imageDataUrl]
+              properties:
+                imageDataUrl: { type: string, maxLength: 7000000, description: JPEG, PNG, or WebP data URL; image limit 5 MB }
+      responses:
+        "201": { description: Verified private selfie proof }
+        "400": { description: Invalid image or face/liveness check failed }
+        "503": { description: Face verification provider is not configured }
+  /iclock/cdata:
+    get:
+      tags: [biometric]
+      security: []
+      summary: ADMS device handshake for a previously registered serial number
+      parameters:
+        - in: query
+          name: SN
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Plain-text ADMS options }
+    post:
+      tags: [biometric]
+      security: []
+      summary: Receive a gateway-authenticated ADMS ATTLOG text upload
+      parameters:
+        - in: header
+          name: x-zk-signature
+          required: true
+          schema: { type: string }
+        - in: header
+          name: x-zk-timestamp
+          required: true
+          schema: { type: string, format: date-time }
+        - in: query
+          name: SN
+          required: true
+          schema: { type: string }
+        - in: query
+          name: table
+          required: true
+          schema: { type: string, example: ATTLOG }
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema: { type: string, description: Tab-delimited ATTLOG rows }
+      responses:
+        "200": { description: Plain-text OK acknowledgement }
+  /iclock/getrequest:
+    get:
+      tags: [biometric]
+      security: []
+      summary: ADMS device heartbeat and command poll
+      parameters:
+        - in: query
+          name: SN
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Plain-text OK; command queue currently empty }
+  /iclock/devicecmd:
+    post:
+      tags: [biometric]
+      security: []
+      summary: Acknowledge device command results through the trusted gateway
+      parameters:
+        - in: header
+          name: x-zk-signature
+          required: true
+          schema: { type: string }
+        - in: header
+          name: x-zk-timestamp
+          required: true
+          schema: { type: string, format: date-time }
+        - in: query
+          name: SN
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Plain-text OK acknowledgement }
+  /leave:
+    get:
+      tags: [leave]
+      summary: List own leave requests or tenant requests for approvers
+      responses:
+        "200": { description: List }
+    post:
+      tags: [leave]
+      summary: Submit a leave request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [leaveTypeId, startDate, endDate]
+              properties:
+                leaveTypeId: { type: string, format: uuid }
+                startDate: { type: string, format: date }
+                endDate: { type: string, format: date }
+                reason: { type: string, maxLength: 1000 }
+      responses:
+        "201": { description: Submitted }
+  /leave/types:
+    get:
+      tags: [leave]
+      summary: List tenant leave types
+      responses:
+        "200": { description: Leave type catalogue }
+  /leave/balances/me:
+    get:
+      tags: [leave]
+      summary: Get current employee's balances for this year
+      responses:
+        "200": { description: Current-year leave balances }
+  /leave/{id}/decide:
+    patch:
+      tags: [leave]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [APPROVED, REJECTED] }
+      responses:
+        "200": { description: Decided }
+  /overtime:
+    get:
+      tags: [overtime]
+      responses:
+        "200": { description: List }
+    post:
+      tags: [overtime]
+      responses:
+        "201": { description: Submitted }
+  /payroll/runs:
+    get:
+      tags: [payroll]
+      summary: List payroll runs in the authenticated tenant
+      responses:
+        "200": { description: Payroll run history }
+    post:
+      tags: [payroll]
+      summary: Calculate Cambodia TOS + NSSF for a period
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [year, month]
+              properties:
+                year: { type: integer }
+                month: { type: integer }
+                fxUsdKhr: { type: number, minimum: 1000, maximum: 100000 }
+      responses:
+        "201": { description: Calculated run pending approval }
+  /payroll/runs/{id}:
+    get:
+      tags: [payroll]
+      summary: Get payroll run details and employee line items
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: Payroll run with item breakdowns }
+  /payroll/runs/{id}/approve:
+    post:
+      tags: [payroll]
+      summary: Approve run and enqueue payslip PDFs
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Approved }
+  /payroll/runs/{id}/void:
+    post:
+      tags: [payroll]
+      summary: Void a run pending approval so its period can be recalculated
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "201": { description: Voided }
+  /payroll/runs/{id}/pay:
+    post:
+      tags: [payroll]
+      responses:
+        "200": { description: Marked paid }
+  /recruitment/jobs:
+    get:
+      tags: [recruitment]
+      responses:
+        "200": { description: Jobs }
+    post:
+      tags: [recruitment]
+      responses:
+        "201": { description: Created }
+  /performance/cycles:
+    get:
+      tags: [performance]
+      responses:
+        "200": { description: KPI cycles }
+  /lms/courses:
+    get:
+      tags: [lms]
+      responses:
+        "200": { description: Courses }
+  /expenses:
+    get:
+      tags: [expenses]
+      responses:
+        "200": { description: Claims }
+    post:
+      tags: [expenses]
+      responses:
+        "201": { description: Submitted }
+  /assets:
+    get:
+      tags: [assets]
+      responses:
+        "200": { description: Assets }
+  /analytics/dashboard:
+    get:
+      tags: [analytics]
+      responses:
+        "200": { description: KPIs }
+  /notifications:
+    get:
+      tags: [notifications]
+      responses:
+        "200": { description: Inbox }
+  /audit:
+    get:
+      tags: [audit]
+      responses:
+        "200": { description: Trail }
+  /billing/subscription:
+    get:
+      tags: [billing]
+      responses:
+        "200": { description: Current plan }
+  /billing/invoices:
+    get:
+      tags: [billing]
+      responses:
+        "200": { description: Tenant invoice history }
+  /billing/checkout:
+    post:
+      tags: [billing]
+      summary: Create a Stripe Checkout session for a configured plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan]
+              properties:
+                plan: { type: string, enum: [STARTER, PROFESSIONAL, ENTERPRISE] }
+      responses:
+        "201": { description: Checkout session URL }
+  /billing/portal:
+    post:
+      tags: [billing]
+      summary: Create a Stripe customer portal session
+      responses:
+        "201": { description: Customer portal session URL }
+  /billing/webhook:
+    post:
+      tags: [billing]
+      summary: Receive signature-verified Stripe subscription and invoice events
+      description: Requires Stripe-Signature verification over the unmodified request body.
+      responses:
+        "201": { description: Event recorded; duplicate event IDs are acknowledged idempotently }
+components:
+  schemas:
+    EmployeePersonalDataInput:
+      type: object
+      minProperties: 1
+      properties:
+        nationalId: { type: string, maxLength: 80, nullable: true }
+        nssfNumber: { type: string, maxLength: 80, nullable: true }
+        bankName: { type: string, maxLength: 120, nullable: true }
+        bankAccount: { type: string, maxLength: 100, nullable: true }
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

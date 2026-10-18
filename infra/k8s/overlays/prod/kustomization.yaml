@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+images:
+  - name: ghcr.io/krompay/api
+    newTag: 1.0.0
+  - name: ghcr.io/krompay/web
+    newTag: 1.0.0
+replicas:
+  - name: krompay-api
+    count: 3

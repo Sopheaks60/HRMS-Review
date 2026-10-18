@@ -1,0 +1,26 @@
+{
+  "name": "krompay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KromPay — enterprise HRMS and Cambodia payroll SaaS",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "test:payroll": "pnpm --filter @krompay/shared test",
+    "prisma:generate": "pnpm --filter @krompay/prisma generate",
+    "prisma:migrate": "pnpm --filter @krompay/prisma migrate:dev",
+    "prisma:seed": "pnpm --filter @krompay/prisma seed",
+    "docker:up": "docker compose -f infra/docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infra/docker/docker-compose.yml down"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

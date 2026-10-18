@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krompay-web
+  namespace: krompay
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: krompay-web }
+  template:
+    metadata:
+      labels: { app: krompay-web }
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/krompay/web:1.0.0
+          ports: [{ containerPort: 3000 }]
+          env:
+            - name: API_URL
+              value: http://krompay-api/api/v1
+          readinessProbe:
+            httpGet: { path: /, port: 3000 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: krompay-web
+  namespace: krompay
+spec:
+  selector: { app: krompay-web }
+  ports: [{ port: 80, targetPort: 3000 }]

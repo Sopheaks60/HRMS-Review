@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krompay-worker
+  namespace: krompay
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: krompay-worker }
+  template:
+    metadata:
+      labels: { app: krompay-worker }
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/krompay/api:1.0.0
+          command: ["node", "apps/api/dist/main.js"]
+          env:
+            - name: PROCESS_ROLE
+              value: worker
+          envFrom: [{ secretRef: { name: krompay-secrets } }]

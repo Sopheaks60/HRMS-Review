@@ -1,0 +1,26 @@
+{
+  "name": "@krompay/web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --port 3000",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "lint": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@krompay/shared": "workspace:*",
+    "@nuxtjs/i18n": "^9.5.3",
+    "@nuxtjs/tailwindcss": "^6.13.2",
+    "@pinia/nuxt": "^0.11.0",
+    "@prisma/client": "^6.5.0",
+    "nuxt": "^4.0.0",
+    "pinia": "^3.0.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
