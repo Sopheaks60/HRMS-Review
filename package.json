@@ -11,7 +11,7 @@
   "scripts": {
     "postinstall": "pnpm --filter @krompay/prisma generate",
     "dev": "pnpm -r --parallel dev",
-    "build": "pnpm --filter @krompay/prisma generate && pnpm -r build",
+    "build": "pnpm --filter @krompay/prisma generate && pnpm -r build && node scripts/copy-vercel-output.mjs",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "test:payroll": "pnpm --filter @krompay/shared test",
