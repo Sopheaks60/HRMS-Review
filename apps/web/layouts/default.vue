@@ -9,6 +9,7 @@
         <NuxtLink to="/leave">{{ $t("nav.leave") }}</NuxtLink>
         <NuxtLink to="/payroll">{{ $t("nav.payroll") }}</NuxtLink>
         <NuxtLink to="/payroll/seniority" class="pl-3 text-xs text-slate-600">↳ Seniority (P.442)</NuxtLink>
+        <NuxtLink to="/workflow" class="pl-3 text-xs text-teal-700 font-semibold">↳ Calculation Workflows (OT/TOS)</NuxtLink>
         <NuxtLink to="/recruitment">{{ $t("nav.recruitment") }}</NuxtLink>
         <NuxtLink to="/performance">{{ $t("nav.performance") }}</NuxtLink>
         <NuxtLink to="/lms">{{ $t("nav.lms") }}</NuxtLink>
