@@ -94,3 +94,4 @@ export default defineEventHandler(async () => {
     rules: WORKFLOW_RULES,
   };
 });
+

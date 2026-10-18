@@ -36,3 +36,4 @@ export default defineEventHandler(async (event) => {
     data: result,
   };
 });
+
